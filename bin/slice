@@ -1,0 +1,257 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift File.join(__dir__, '..', 'lib')
+
+require 'rubygems'
+require 'bundler'
+Bundler.setup :default
+
+require 'gli'
+require 'trema'
+require 'sliceable_switch'
+
+# slice command
+module SliceApp
+  extend GLI::App
+
+  desc 'Creates a new virtual slice'
+  arg_name 'name'
+  command :add do |c|
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail 'slice name is required.' if args.empty?
+      Trema.trema_process('RoutingSwitch', options[:socket_dir]).
+        controller.slice.create(args.first)
+    end
+  end
+
+  desc 'Deletes a virtual slice'
+  arg_name 'name'
+  command :delete do |c|
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail 'slice name is required.' if args.empty?
+      Trema.trema_process('RoutingSwitch', options[:socket_dir]).
+        controller.slice.destroy(args.first)
+    end
+  end
+
+  desc 'Lists slices'
+  command :list do |c|
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      DRb.start_service
+      controller = Trema.trema_process('RoutingSwitch', options[:socket_dir]).controller
+      controller.slice.all.each do |slice|
+        puts slice
+        slice.each do |port, mac_addresses|
+          puts "  #{port.name}"
+          mac_addresses.each do |each|
+            puts "    #{each}"
+          end
+        end
+      end
+    end
+  end
+
+  desc 'Adds a port to a slice'
+  command :add_port do |c|
+    c.desc 'Switch port'
+    c.flag [:p, :port]
+    c.desc 'Slice name'
+    c.flag [:s, :slice]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      fail '--port option is mandatory.' unless options[:port]
+      fail '--slice option is mandatory.' unless options[:slice]
+      port = Port.parse(options[:port])
+      slice = Trema.trema_process('RoutingSwitch', options[:socket_dir]).
+              controller.slice.find_by!(name: options[:slice])
+      slice.add_port(dpid: port[:dpid], port_no: port[:port_no])
+    end
+  end
+
+  desc 'Deletes a port from a slice'
+  command :delete_port do |c|
+    c.desc 'Switch port'
+    c.flag [:p, :port]
+    c.desc 'Slice name'
+    c.flag [:s, :slice]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      fail '--port option is mandatory.' unless options[:port]
+      fail '--slice option is mandatory.' unless options[:slice]
+      port = Port.parse(options[:port])
+      Trema.trema_process('RoutingSwitch', options[:socket_dir]).
+        controller.
+        slice.
+        find_by!(name: options[:slice]).
+        delete_port(dpid: port[:dpid], port_no: port[:port_no])
+    end
+  end
+
+  desc 'Split a slice into several slices'
+  arg_name 'name'
+  command :split do |c|
+    c.desc 'Slices to split into'
+    c.flag [:s_a, :slice_a]
+    c.desc 'Slices to split into'
+    c.flag [:s_b, :slice_b]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+ 
+    c.action do |_global_options, options, args|
+      DRb.start_service
+ #     fail 'original slice name is required.' if args.empty? # inappropriate
+      fail '--slice_a option is mandatory.' unless options[:slice_a]  
+      fail '--slice_b option is mandatory.' unless options[:slice_b]   
+
+      slice_a_name = options[:slice_a].split("/")[0]
+      slice_a_macs = options[:slice_a].split("/")[1].split(",")
+
+      slice_b_name = options[:slice_b].split("/")[0]
+      slice_b_macs = options[:slice_b].split("/")[1].split(",")
+
+      controller = Trema.trema_process('RoutingSwitch', options[:socket_dir]).controller
+      slice_old = controller.slice.find_by!(name: args.first)
+
+      if  slice_old.length != slice_a_macs.length + slice_b_macs.length then
+        fail 'number of elements does not match'
+      end
+
+      controller.slice.create(slice_a_name)
+      controller.slice.create(slice_b_name)
+
+      slice_a = controller.slice.find_by!(name: slice_a_name)
+      slice_b = controller.slice.find_by!(name: slice_b_name)
+
+      # add hosts into slice_a and slice_b
+      slice_old.each do |port, mac_addresses|
+        parsed_port = Port.parse(port.name)
+        mac_addresses.each do |each|
+          if slice_a_macs.include?(each) then
+            slice_a.add_mac_address(each,
+              dpid: parsed_port[:dpid],
+              port_no: parsed_port[:port_no])
+          elsif slice_b_macs.include?(each) then
+            slice_b.add_mac_address(each,
+            dpid: parsed_port[:dpid],
+            port_no: parsed_port[:port_no])
+          else 
+            fail 'inappropriate mac address'
+          end #if
+        end # mac_addresses
+      end # slice_old
+
+      controller.slice.destroy(args.first) # delete old slice
+
+    end
+  end
+
+
+
+  desc 'Adds a host to a slice'
+  command :add_host do |c|
+    c.desc 'MAC address'
+    c.flag [:m, :mac]
+    c.desc 'Switch port'
+    c.flag [:p, :port]
+    c.desc 'Slice name'
+    c.flag [:s, :slice]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      fail '--mac option is mandatory.' unless options[:mac]
+      fail '--port option is mandatory.' unless options[:port]
+      fail '--slice option is mandatory.' unless options[:slice]
+      port = Port.parse(options[:port])
+      Trema.trema_process('RoutingSwitch', options[:socket_dir]).
+        controller.slice.
+        find_by!(name: options[:slice]).
+        add_mac_address(options[:mac],
+                        dpid: port[:dpid], port_no: port[:port_no])
+    end
+  end
+
+  desc 'Deletes a host from a slice'
+  command :delete_host do |c|
+    c.desc 'MAC address'
+    c.flag [:m, :mac]
+    c.desc 'Switch port'
+    c.flag [:p, :port]
+    c.desc 'Slice name'
+    c.flag [:s, :slice]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, _args|
+      fail '--mac option is mandatory.' unless options[:mac]
+      fail '--port option is mandatory.' unless options[:port]
+      fail '--slice option is mandatory.' unless options[:slice]
+      port = Port.parse(options[:port])
+      Trema.trema_process('RoutingSwitch', options[:socket_dir]).
+        controller.
+        slice.
+        find_by!(name: options[:slice]).
+        delete_mac_address(options[:mac],
+                           dpid: port[:dpid], port_no: port[:port_no])
+    end
+  end
+
+
+  desc 'Combine two slices into the new slice'
+  command :combine do |c|
+    c.flag [:s_new, :slice_new]
+    c.flag [:s_a, :slice_a]
+    c.flag [:s_b, :slice_b]
+    c.desc 'Location to find socket files'
+    c.flag [:S, :socket_dir], default_value: Trema::DEFAULT_SOCKET_DIR
+
+    c.action do |_global_options, options, args|
+      fail '--slice_new option is mandatory.' unless options[:slice_new]
+      fail '--slice_a option is mandatory.' unless options[:slice_a]
+      fail '--slice_b option is mandatory.' unless options[:slice_b]
+      # Create new slice
+      process = Trema.trema_process('RoutingSwitch', options[:socket_dir])
+      controller = process.controller
+      controller.slice.create(options[:slice_new])
+      # add hosts of existing slices into the new slice
+      DRb.start_service
+      slice_new = controller.slice.find_by!(name: options[:slice_new])
+      slice_a = controller.slice.find_by!(name: options[:slice_a])
+      slice_b = controller.slice.find_by!(name: options[:slice_b])
+      slices = [slice_a, slice_b]
+      slices.each do |slice|
+        slice.each do |port, mac_addresses|
+          mac_addresses.each do |each|
+            parsed_port = Port.parse(port.name)
+            slice_new.add_mac_address(each,
+              dpid: parsed_port[:dpid],
+              port_no: parsed_port[:port_no])
+          end # mac_addresses
+        end # slice
+      end # slices
+
+      controller.slice.destroy(options[:slice_a])
+      controller.slice.destroy(options[:slice_b])
+
+    end # c.action
+  end # command
+
+  on_error do |e|
+    fail e
+  end
+
+  exit run(ARGV)
+end
+
