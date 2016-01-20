@@ -67,4 +67,34 @@ class RoutingSwitch < Trema::Controller
       @path_manager.add_observer topology_controller.view
     end
   end
+
+
+
+  # black list
+  def add_firewall_flow_entry(
+        src_ip_for_blocking,
+        dest_ip_for_blocking,
+#        src_port_for_blocking,
+        dest_port_for_blocking )
+    
+    datapath_ids = get_datapath(dest_ip_for_blocking)
+
+#    datapath_ids.each do |datapath_id|
+
+      send_flow_mod_add(
+        datapath_id,
+        match: Match.new(
+          ip_source_address: src_ip_for_blocking,
+          ip_destination_address: dest_ip_for_blocking,
+#         transport_source_port: src_port_for_blocking,
+          transport_destination_port: dest_port_for_blocking
+        )
+
+#       NO ACTION 
+      )
+
+#    end # datapath_ids
+
+  end # add_firewall_flow_entry
+
 end
