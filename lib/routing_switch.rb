@@ -70,6 +70,25 @@ class RoutingSwitch < Trema::Controller
 
 
 
+  def delete_firewall_flow_entry(
+        src_ip_for_blocking,
+        dest_ip_for_blocking,
+#        src_port_for_blocking,
+        dest_port_for_blocking )
+
+      send_flow_mod_add(
+        datapath_id,
+        match: Match.new(
+          ip_source_address: src_ip_for_blocking,
+          ip_destination_address: dest_ip_for_blocking,
+#         transport_source_port: src_port_for_blocking,
+          transport_destination_port: dest_port_for_blocking
+        )
+#       action:
+      )
+
+  end # delete_firewall_flow_entry
+
   # black list
   def add_firewall_flow_entry(
         src_ip_for_blocking,
@@ -89,8 +108,7 @@ class RoutingSwitch < Trema::Controller
 #         transport_source_port: src_port_for_blocking,
           transport_destination_port: dest_port_for_blocking
         )
-
-#       NO ACTION 
+#       action:
       )
 
 #    end # datapath_ids
