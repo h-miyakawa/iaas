@@ -1,0 +1,53 @@
+{
+  "users":[
+    {
+      "user_id":"user1",
+      "password":"hogehoge",
+      "slice_name":"user1-slice",
+      "vms":[
+        {
+          "vm_id":"vm01",
+          "mac_address":"a1:b2:c3:d4:e5:f6",
+          "cpu":"2",
+          "memory":"1000",
+          "volume":"100",
+          "host_id":"host1"
+        },
+        {
+          "vm_id":"vm02",
+          "mac_address":"f7:e8:d9:ea:bb:ac",
+          "cpu":"2",
+          "memory":"500",
+          "volume":"100",
+          "host_id":"host1"
+        },
+        {
+          "vm_id":"vm03",
+          "mac_address":"7f:8e:9d:ae:bb:ca",
+          "cpu":"2",
+          "memory":"1000",
+          "volume":"500",
+          "host_id":"host2"
+        }
+      ]
+    },
+
+    {
+      "user_id":"user2",
+      "password":"fugafuga",
+      "slice_name":"user2-slice",
+      "vms":[
+        {
+          "vm_id":"vm01",
+          "mac_address":"c3:e1:dd:44:01:f5",
+          "cpu":"1",
+          "memory":"500",
+          "volume":"100",
+          "host_id":"host2"
+        }
+      ]
+    }
+
+  ]
+}
+
