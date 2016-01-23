@@ -48,8 +48,9 @@ class ControlReceiver
       @vmc.modify(control['field'])
     when 'VM_DELETE'
       @vmc.delete(control['field'])
-    when 'FW_CONTROL'
-      # FW の機能
+    when 'FW_CONTROL_ADD'
+    when 'FW_CONTROL_MODIFY'
+    when 'FW_CONTROL_DELETE'
     # from host
     when 'VM_CREATE_ACK'
       @vmc.ack_for_create(control['field'])

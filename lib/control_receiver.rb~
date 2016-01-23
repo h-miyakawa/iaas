@@ -2,6 +2,7 @@ require 'socket'
 require 'json'
 require 'vm_control'
 require 'host_manager'
+require 'user_manager'
 require 'settings'
 
 class ControlReceiver
@@ -11,20 +12,26 @@ class ControlReceiver
   end
 
   def start_server
-    @socket = TCPServer.open(Settings::PORT)
+    socket = TCPServer.open(Settings::PORT)
     @continue = true
-    while @continue
-      control_json = '';
-      tmp = s0.accept
+    begin
+      while @continue
+        control_json = ''
+        tmp = s0.accept
 
-      while buf = tmp.gets
-        control_json += buf.to_s
+        while buf = tmp.gets
+          control_json += buf.to_s
+        end
+
+        control = JSON.load(control_json)
+        run(control)
+
+        tmp.close
       end
-
-      control = JSON.load(control_json)
-      run(control)
-
-      tmp.close
+    rescue
+      # nothing
+    ensure
+      socket.close
     end
   end
 
@@ -32,7 +39,9 @@ class ControlReceiver
     case control['function']
     # from web server
     when 'USER_CREATE'
+      UserManager.create(control['field'])
     when 'USER_DELETE'
+      UserManager.delete(control['field'])
     when 'VM_CREATE'
       @vmc.create(control['field']
     when 'VM_MODIFY'
@@ -64,8 +73,6 @@ class ControlReceiver
 
   def end_server
     @continue = false
-    @socket.close
   end
 
 end
-
