@@ -3,31 +3,48 @@
     {
       "user_id":"user1",
       "password":"hogehoge",
-      "slice_name":"user1-slice",
+      "fw_rule":[
+        {
+          "rule_no":"1",
+          "filter":"deny",
+          "destination_tcp_port":"-1"
+        },
+        {
+          "rule_no":"2",
+          "filter":"allow",
+          "destination_tcp_port":"80"
+        }
+      ],
       "vms":[
         {
           "vm_id":"vm01",
           "mac_address":"a1:b2:c3:d4:e5:f6",
+          "ip_address":"192.168.255.50",
           "cpu":"2",
           "memory":"1000",
           "volume":"100",
-          "host_id":"host1"
+          "host_id":"host1",
+          "port":"0x1:1"
         },
         {
           "vm_id":"vm02",
           "mac_address":"f7:e8:d9:ea:bb:ac",
+          "ip_address":"192.168.255.60",
           "cpu":"2",
           "memory":"500",
           "volume":"100",
-          "host_id":"host1"
+          "host_id":"host1",
+          "port":"0x1:1"
         },
         {
           "vm_id":"vm03",
           "mac_address":"7f:8e:9d:ae:bb:ca",
+          "ip_address":"192.168.255.70",
           "cpu":"2",
           "memory":"1000",
           "volume":"500",
-          "host_id":"host2"
+          "host_id":"host2",
+          "port":"0x2:1"
         }
       ]
     },
@@ -35,19 +52,39 @@
     {
       "user_id":"user2",
       "password":"fugafuga",
-      "slice_name":"user2-slice",
+      "fw_rule":[
+        {
+          "rule_no":"1",
+          "filter":"deny",
+          "destination_tcp_port":"-1"
+          "destination_udp_port":"-1"
+        },
+        {
+          "rule_no":"2",
+          "filter":"allow",
+          "destination_ip_address":"192.168.255.50"
+          "destination_tcp_port":"80"
+        },
+        {
+          "rule_no":"3",
+          "filter":"allow",
+          "destination_ip_address":"192.168.255.50"
+          "destination_tcp_port":"443"
+        }
+      ],
       "vms":[
         {
           "vm_id":"vm01",
           "mac_address":"c3:e1:dd:44:01:f5",
+          "ip_address":"192.168.255.80",
           "cpu":"1",
           "memory":"500",
           "volume":"100",
-          "host_id":"host2"
+          "host_id":"host2",
+          "port":"0x2:1"
         }
       ]
     }
 
   ]
 }
-

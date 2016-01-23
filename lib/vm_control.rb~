@@ -1,13 +1,14 @@
 require 'json_api'
 require 'settings'
 require 'control_sender'
-require 'slice'
-require 'port'
 
 class VMControl
 
   def initialize
     @ack_waitings = []
+    @users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
+    @hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
+    control = {'function' => '', 'field' => {}}
   end
 
   def create(request)
@@ -63,12 +64,10 @@ class VMControl
   end
 
   def delete(request)
-    users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
-    hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
     search_keys = ['users','user_id',request['user_id'],'vms','vm_id',request['vm_id']]
-    vm = JsonAPI.search(users, search_keys)
+    vm = JsonAPI.search(@users, search_keys)
     search_keys = ['host','host_id',vm['host_id']]
-    host = JsonAPI.search(hosts, search_keys)
+    host = JsonAPI.search(@hosts, search_keys)
     control = {'function' => '', 'field' => {}}
     control['function'] = 'VM_DELETE'
     control['field']['user_id'] = request['user_id']
@@ -78,22 +77,7 @@ class VMControl
   end
 
   def ack_for_create(response)
-    request = handle_ack('function'=>'VM_CREATE', 'user_id'=>response['user_id'],'vm_id'=>response['vm_id'])
-    if response['status'] == 'OK'
-      users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
-      user = JsonAPI.search(users, ['users','user_id',response['user_id']])
-      vm = {'vm_id' => response['vm_id']}
-      vm['mac_address'] = request['mac_address']
-      vm['cpu'] = request['cpu']
-      vm['memory'] = request['memory']
-      vm['volume'] = request['volume']
-      vm['port'] = response['port']
-      user['vms'] << vm
-      port = Port.parse(vm['port'])
-      Slice.find_by!(name: user['slice_name']).
-          add_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
-      JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
-    end
+    handle_ack('function'=>'VM_CREATE', 'user_id'=>response['user_id'],'vm_id'=>response['vm_id'])
     control = {'function' => '', 'field' => {}}
     control['function'] = 'VM_CREATE_ACK'
     control['field']['user_id'] = response['user_id']
@@ -104,15 +88,7 @@ class VMControl
   end
 
   def ack_for_modify(response)
-    request = handle_ack('function'=>'VM_MODIFY', 'user_id'=>response['user_id'],'vm_id'=>response['vm_id'])
-    if response['status'] == 'OK'
-      users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
-      vm = JsonAPI.search(users, ['users','user_id',response['user_id'],'vms','vm_id',response['vm_id']])
-      vm['cpu'] = request['cpu']
-      vm['memory'] = request['memory']
-      vm['volume'] = request['volume']
-      JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
-    end
+    handle_ack('function'=>'VM_MODIFY', 'user_id'=>response['user_id'],'vm_id'=>response['vm_id'])
     control = {'function' => '', 'field' => {}}
     control['function'] = 'VM_MODIFY_ACK'
     control['field']['user_id'] = response['user_id']
@@ -123,14 +99,7 @@ class VMControl
   end
 
   def ack_for_delete(response)
-    request = handle_ack('function'=>'VM_DELETE', 'user_id'=>response['user_id'],'vm_id'=>response['vm_id'])
-    if response['status'] == 'OK'
-      users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
-      vms = JsonAPI.search(users, ['users','user_id',response['user_id'],'vms'])
-      vm = JsonAPI.search(vms, ['vm_id',response['vm_id']])
-      vms.delete(vm)
-      JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
-    end
+    handle_ack('function'=>'VM_DELETE', 'user_id'=>response['user_id'],'vm_id'=>response['vm_id'])
     control = {'function' => '', 'field' => {}}
     control['function'] = 'VM_MODIFY_ACK'
     control['field']['user_id'] = response['user_id']
@@ -141,12 +110,11 @@ class VMControl
   end
 
   def check_resource_for_modifying_vm(request)
-    users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
-    hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
+
     search_keys = ['users','user_id',request['user_id'],'vms','vm_id',request['vm_id']]
-    vm = JsonAPI.search(users, search_keys)
+    vm = JsonAPI.search(@users, search_keys)
     search_keys = ['host','host_id',vm['host_id']]
-    host = JsonAPI.search(hosts, search_keys)
+    host = JsonAPI.search(@hosts, search_keys)
 
     diff_cpu = request['cpu'] - vm['cpu']
     diff_memory = request['memory'] - vm['memory']
@@ -171,12 +139,10 @@ class VMControl
   end
 
   def select_host_for_creating_vm(request)
-    users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
-    hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
     search_keys = ['users','user_id',request['user_id'],'vms','vm_id',request['vm_id']]
-    collision = JsonAPI.search(users, search_keys) ? 1 : 0
+    collision = JsonAPI.search(@users, search_keys) ? 1 : 0
     min = 65
-    hosts['hosts'].each do |host|
+    @hosts['hosts'].each do |host|
       sum = collision
       # 現在，その CPU の要求を受付できません
       sum += 2 if request['cpu'] > host['rest_cpu']
@@ -233,8 +199,7 @@ class VMControl
   end
 
   def check_mac_address_collision(mac_str)
-    users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
-    users['users'].each do |user|
+    @users['users'].each do |user|
       user['vms'].each do |vm|
         return true if vm['mac_address'] == mac_str
       end
@@ -253,9 +218,9 @@ class VMControl
       end
       next if !match
       @ack_waitings.delete_at(i)
-      return ack_waiting['field']
+      return true
     end
-    return nil
+    return false
   end
 
 end

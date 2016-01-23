@@ -37,12 +37,6 @@ class RoutingSwitch < Trema::Controller
     @options = Options.new(args)
     @path_manager = start_path_manager
     @topology = start_topology args
-    @cr = ControlReceiver.new
-    # サーバ起動
-    Thread.new do
-      @cr.start_server
-    end
-    @cr.add_observer
     logger.info 'Routing Switch started.'
   end
 
