@@ -47,6 +47,8 @@ class RoutingSwitch < Trema::Controller
   def packet_in(dpid, message)
     @topology.packet_in(dpid, message)
     @path_manager.packet_in(dpid, message) unless message.lldp?
+    # print message
+    add_block_entry(message.source_ip_address, message.destination_ip_address, 100) unless message.lldp?
   end
 
   private
@@ -70,49 +72,45 @@ class RoutingSwitch < Trema::Controller
 
 
 
-  def delete_firewall_flow_entry(
-        src_ip_for_blocking,
-        dest_ip_for_blocking,
-#        src_port_for_blocking,
-        dest_port_for_blocking )
-
-      send_flow_mod_add(
-        datapath_id,
-        match: Match.new(
-          ip_source_address: src_ip_for_blocking,
-          ip_destination_address: dest_ip_for_blocking,
-#         transport_source_port: src_port_for_blocking,
-          transport_destination_port: dest_port_for_blocking
-        )
-#       action:
-      )
-
-  end # delete_firewall_flow_entry
+  # def delete_firewall_flow_entry()
+  # end # delete_firewall_flow_entry
 
   # black list
-  def add_firewall_flow_entry(
-        src_ip_for_blocking,
-        dest_ip_for_blocking,
-#        src_port_for_blocking,
-        dest_port_for_blocking )
-    
-    datapath_ids = get_datapath(dest_ip_for_blocking)
+#   def add_firewall_flow_entry()
+#       send_flow_mod_add(
+#         datapath_id,
+#         match: Match.new(
+#           ip_source_address: src_ip_for_blocking,
+#           ip_destination_address: dest_ip_for_blocking,
+#           transport_source_port: src_port_for_blocking,
+#           transport_destination_port: dest_port_for_blocking
+#         )
+#       )
+#   end # add_firewall_flow_entry
 
-#    datapath_ids.each do |datapath_id|
+  def add_block_entry(
+    ip_src,
+    ip_dst,
+    priority
+    )
 
-      send_flow_mod_add(
-        datapath_id,
-        match: Match.new(
-          ip_source_address: src_ip_for_blocking,
-          ip_destination_address: dest_ip_for_blocking,
-#         transport_source_port: src_port_for_blocking,
-          transport_destination_port: dest_port_for_blocking
-        )
-#       action:
+    # get datapath id from ip address
+    hosts = topology.hosts.each_with_object({}) do |host, tmp|
+      mac_address, ip_address, dpid, port_no = *host
+      if ip_address = ip_src then
+        datapath_id = dpid
+      end
+    end
+
+    # add flow entry
+    # oldfathioned? nw_dst: ip_dst, dl_type: 0x0800
+    send_flow_mod_add(
+      datapath_id,
+      priority: priority,
+      match: Match.new(
+        ip_source_address: ip_src,
+        ip_destination_address: ip_dst,
       )
-
-#    end # datapath_ids
-
-  end # add_firewall_flow_entry
-
+    )
+  end
 end

@@ -1,12 +1,15 @@
-target_ip_address = "Input from User";
-hosts = topology.hosts.each_with_object({}) do |host, tmp|
-  mac_address, ip_address, dpid, port_no = *host
-  if ip_address = target_ip_address then
-    target_dpid = dpid
-    break
+def get_datapath_id(host_ip_address)
+  target_ip_address = "Input from User";
+  hosts = topology.hosts.each_with_object({}) do |host, tmp|
+    mac_address, ip_address, dpid, port_no = *host
+    if ip_address = target_ip_address then
+      return dpid
+    end
   end
+  # host not found
+  return -1
 end
-
+  
 # vendor/topology/lib/view/graphviz.rb
 g_hosts = topology.hosts.each_with_object({}) do |host, tmp|
   mac_address, ip_address, dpid, port_no = *host
