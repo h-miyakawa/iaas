@@ -48,7 +48,9 @@ class RoutingSwitch < Trema::Controller
     @topology.packet_in(dpid, message)
     @path_manager.packet_in(dpid, message) unless message.lldp?
     # print message
-    add_block_entry(message.source_ip_address, message.destination_ip_address, 100) unless message.lldp?
+    add_block_entry(message.source_ip_address,
+      message.destination_ip_address,
+      100) unless message.lldp?
   end
 
   private
@@ -95,22 +97,26 @@ class RoutingSwitch < Trema::Controller
     )
 
     # get datapath id from ip address
-    hosts = topology.hosts.each_with_object({}) do |host, tmp|
+    @foo = ""
+    hosts = @path_manager.topology.hosts.each_with_object({}) do |host, tmp|
       mac_address, ip_address, dpid, port_no = *host
       if ip_address = ip_src then
-        datapath_id = dpid
+        @foo = dpid
+        @port = port_no
+        print "found"
       end
     end
 
+    print @foo
     # add flow entry
     # oldfathioned? nw_dst: ip_dst, dl_type: 0x0800
     send_flow_mod_add(
-      datapath_id,
+      @foo,
       priority: priority,
       match: Match.new(
         ip_source_address: ip_src,
-        ip_destination_address: ip_dst,
-      )
+        ip_destination_address: ip_dst),
+      actions: SendOutPort.new(@port)
     )
   end
 end
