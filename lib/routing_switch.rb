@@ -6,6 +6,7 @@ require 'path_manager'
 require 'sliceable_switch'
 require 'topology_controller'
 require 'control_receiver'
+require 'ip_address_manager'
 
 # L2 routing switch
 class RoutingSwitch < Trema::Controller
@@ -37,12 +38,17 @@ class RoutingSwitch < Trema::Controller
     @options = Options.new(args)
     @path_manager = start_path_manager
     @topology = start_topology args
-    @cr = ControlReceiver.new
-    # サーバ起動
-    Thread.new do
-      @cr.start_server
+    @control_receiver = ControlReceiver.new
+    @ip_address_manager = IPAddressManager.new
+    # 制御サーバ起動
+    Thread.start(@control_receiver) do |cr|
+      cr.start_server
     end
-    @cr.add_observer
+    # IPアドレス管理サーバ起動
+    Thread.start(@ip_address_manager) do |iam|
+      iam.start_manager
+    end
+    @control_receiver.add_observer(self)
     logger.info 'Routing Switch started.'
   end
 
@@ -52,8 +58,18 @@ class RoutingSwitch < Trema::Controller
   def_delegators :@topology, :port_modify
 
   def packet_in(dpid, message)
-    @topology.packet_in(dpid, message)
-    @path_manager.packet_in(dpid, message) unless message.lldp?
+    # for DHCP
+    case message.data
+    when Dhcp::Discover, Dhcp::Offer, Dhcp::Request, Dhcp::Ack
+      send_packet_out(
+        dpid,
+        packet_in: message,
+        actions: SendOutPort.new(:flood)
+      )
+    else
+      @topology.packet_in(dpid, message)
+      @path_manager.packet_in(dpid, message) unless message.lldp?
+    end
   end
 
   private
@@ -74,4 +90,5 @@ class RoutingSwitch < Trema::Controller
       @path_manager.add_observer topology_controller.view
     end
   end
+
 end
