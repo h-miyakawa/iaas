@@ -3,14 +3,14 @@ require 'control_manager'
 
 class UserManager < ControlManager
 
-  def initialize
-    super
+  def initialize(options)
+    super(options)
   end
 
   def create(request)
     users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
     user = JsonAPI.search(users, ['users','user_id',request['user_id']])
-    Slice.create(user['user_id'])
+    Slice.create(user['user_id']) if @options.slicing
     user['fw_rule'] = []
     user['vms'] = []
     JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
@@ -19,7 +19,7 @@ class UserManager < ControlManager
   def delete(request)
     users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
     user = JsonAPI.search(users, ['users','user_id',request['user_id']])
-    Slice.destroy(user['user_id'])
+    Slice.destroy(user['user_id']) if @options.slicing
     users.delete(user)
     JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
   end

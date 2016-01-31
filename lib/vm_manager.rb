@@ -5,8 +5,8 @@ require 'port'
 
 class VirtualMachineManager < ControlManager
 
-  def initialize
-    super
+  def initialize(options)
+    super(options)
   end
 
   # VM_CREATE
@@ -128,13 +128,15 @@ class VirtualMachineManager < ControlManager
     user = JsonAPI.search(users, ['users','user_id',request['user_id']])
     vm = JsonAPI.search(user, ['vms','vm_id',request['vm_id']])
     if response['status'] == 'OK'
-      hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
-      host = JsonAPI.search(hosts, ['hosts','host_id',vm['host_id']])
-      port = Port.parse(host['port'])
-      Slice.find_by!(name: user['user_id']).
-        add_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
       vm['status'] = 'standby'
       vm['message'] = ''
+      if @options.slicing
+        hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
+        host = JsonAPI.search(hosts, ['hosts','host_id',vm['host_id']])
+        port = Port.parse(host['port'])
+        Slice.find_by!(name: user['user_id']).
+          add_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
+      end
     else
       vm['status'] = 'error'
       vm['message'] = response['message']
@@ -169,11 +171,13 @@ class VirtualMachineManager < ControlManager
     vm = JsonAPI.search(user, ['vms','vm_id',request['vm_id']])
     if response['status'] == 'OK'
       user['vms'].delete(vm)
-      hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
-      host = JsonAPI.search(hosts, ['hosts','host_id',vm['host_id']])
-      port = Port.parse(host['port'])
-      Slice.find_by!(name: user['user_id']).
-        delete_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
+      if @options.slicing
+        hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
+        host = JsonAPI.search(hosts, ['hosts','host_id',vm['host_id']])
+        port = Port.parse(host['port'])
+        Slice.find_by!(name: user['user_id']).
+          delete_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
+      end
     else
       vm['status'] = 'standby'
       vm['message'] = response['message']

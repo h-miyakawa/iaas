@@ -5,6 +5,7 @@ gem 'bundler'
 gem 'grape'
 gem 'trema'
 gem 'ruby-graphviz'
+gem 'rb-inotify'
 
 group :development, :test do
   gem 'aruba', require: false

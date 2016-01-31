@@ -276,6 +276,7 @@ DEPENDENCIES
   pry-doc
   rack-test
   rake
+  rb-inotify
   reek
   relish
   rspec

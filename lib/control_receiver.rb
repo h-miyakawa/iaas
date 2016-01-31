@@ -8,10 +8,10 @@ require 'control_sender'
 
 class ControlReceiver
 
-  def initialize
-    @vm_manager = VirtualMachineManager.new
-    @user_manager = UserManager.new
-    @host_manager = HostManager.new
+  def initialize(options)
+    @vm_manager = VirtualMachineManager.new(options)
+    @user_manager = UserManager.new(options)
+    @host_manager = HostManager.new(options)
     @observers = []
   end
 

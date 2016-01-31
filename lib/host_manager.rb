@@ -2,6 +2,10 @@ require 'settings'
 
 class HostManager < ControlManager
 
+  def initialize(options)
+    super(options)
+  end
+
   def update(request)
     hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
     host = JsonAPI.search(hosts, ['hosts','host_id',request['field']['host_id']])

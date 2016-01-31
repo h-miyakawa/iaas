@@ -3,8 +3,9 @@ require 'control_sender'
 
 class ControlManager
 
-  def initialize
+  def initialize(options)
     @ack_waitings = []
+    @options = options
   end
 
   def handle_ack(pairs)

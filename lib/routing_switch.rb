@@ -38,7 +38,7 @@ class RoutingSwitch < Trema::Controller
     @options = Options.new(args)
     @path_manager = start_path_manager
     @topology = start_topology args
-    @control_receiver = ControlReceiver.new
+    @control_receiver = ControlReceiver.new(@options)
     @ip_address_manager = IPAddressManager.new
     # 制御サーバ起動
     Thread.start(@control_receiver) do |cr|
@@ -63,7 +63,7 @@ class RoutingSwitch < Trema::Controller
     when Dhcp::Discover, Dhcp::Offer, Dhcp::Request, Dhcp::Ack
       send_packet_out(
         dpid,
-        packet_in: message,
+        packet_in: message
         actions: SendOutPort.new(:flood)
       )
     else
