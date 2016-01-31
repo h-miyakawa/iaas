@@ -48,7 +48,7 @@ module View
             tmp[mac_address.to_s] = gviz.add_nodes(mac_address.to_s, shape: 'ellipse', label: new_label)
           end
           next unless g_switches[dpid]
-          gviz.add_edges tmp[mac_address.to_s], g_switches[dpid], dir: 'none'
+          gviz.add_edges tmp[mac_address.to_s], g_switches[dpid], dir: 'none', headlabel: port_no.to_s
         end
 
         paths.each do |path|
