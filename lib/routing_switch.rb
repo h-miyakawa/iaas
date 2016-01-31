@@ -63,7 +63,7 @@ class RoutingSwitch < Trema::Controller
     when Dhcp::Discover, Dhcp::Offer, Dhcp::Request, Dhcp::Ack
       send_packet_out(
         dpid,
-        packet_in: message
+        packet_in: message,
         actions: SendOutPort.new(:flood)
       )
     else
