@@ -1,15 +1,16 @@
 $LOAD_PATH.unshift File.dirname(__FILE__)
 
 require 'control_receiver'
+require 'ip_address_manager'
 
 class Test
 
 	def initialize
-		@cr = ControlReceiver.new
+		@iam = IPAddressManager.new
 	end
 
 	def start
-		@cr.start_server
+		@iam.start_manager
 	end
 
 end
