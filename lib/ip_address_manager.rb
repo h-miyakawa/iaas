@@ -8,6 +8,7 @@ class IPAddressManager
   end
 
   def start_manager
+    puts 'start IP address Manager'
     @continue = true
     begin
       begin

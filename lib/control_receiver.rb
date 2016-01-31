@@ -16,6 +16,7 @@ class ControlReceiver
   end
 
   def start_server
+    puts "start server"
     @socket = TCPServer.open(Settings::LISTENING_PORT)
     @continue = true
     while @continue
