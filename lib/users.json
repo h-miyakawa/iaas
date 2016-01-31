@@ -24,7 +24,8 @@
           "memory":"1000",
           "volume":"100",
           "host_id":"host1",
-          "port":"0x1:1"
+          "status":"running",
+          "message":""
         },
         {
           "vm_id":"vm02",
@@ -34,7 +35,8 @@
           "memory":"500",
           "volume":"100",
           "host_id":"host1",
-          "port":"0x1:1"
+          "status":"running",
+          "message":""
         },
         {
           "vm_id":"vm03",
@@ -44,7 +46,8 @@
           "memory":"1000",
           "volume":"500",
           "host_id":"host2",
-          "port":"0x2:1"
+          "status":"running",
+          "message":""
         }
       ]
     },
@@ -81,7 +84,8 @@
           "memory":"500",
           "volume":"100",
           "host_id":"host2",
-          "port":"0x2:1"
+          "status":"running",
+          "message":""
         }
       ]
     }

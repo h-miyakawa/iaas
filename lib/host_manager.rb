@@ -1,17 +1,14 @@
-require 'json_api'
 require 'settings'
 
-class HostManager
+class HostManager < ControlManager
 
-  def self.update_host(request)
-    data = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
-    host = JsonAPI.search(data, ['hosts','host_id',request['field']['host_id']])
+  def update(request)
+    hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
+    host = JsonAPI.search(hosts, ['hosts','host_id',request['field']['host_id']])
 
     if !host
-      host = {}
-      host['host_id'] = request['field']['host_id']
-      hosts = JsonAPI.search(data, ['hosts'])
-      hosts << host
+      host = {'host_id' => request['host_id']}
+      hosts['hosts'] << host
     end
 
     host['ip_address'] = request['ip_address'] if request['ip_address']
@@ -23,6 +20,7 @@ class HostManager
     host['max_volume'] = request['max_volume'] if request['max_volume']
     host['rest_memory'] = request['rest_memory'] if request['rest_memory']
     host['rest_volume'] = request['rest_volume'] if request['rest_volume']
+    host['port'] = request['port'] if request['port']
 
     JsonAPI.file_writer(data, Settings::HOSTS_FILEPATH)
   end
