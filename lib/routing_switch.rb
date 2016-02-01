@@ -47,7 +47,7 @@ class RoutingSwitch < Trema::Controller
   def packet_in(dpid, message)
     @topology.packet_in(dpid, message)
     @path_manager.packet_in(dpid, message) unless message.lldp?
-      
+
     unless message.lldp? then
       options = {}
       options[:ether_type] = 0x0800
@@ -123,6 +123,7 @@ class RoutingSwitch < Trema::Controller
     host_info = get_host_info_from_ip(ip_src)
     @_dpid = host_info[:dpid]
 
+    print @foo
     # add flow entry
     # TCP: ip_protocol:6 
     send_flow_mod_add(
