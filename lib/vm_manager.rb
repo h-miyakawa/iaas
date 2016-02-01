@@ -21,16 +21,27 @@ class VirtualMachineManager < ControlManager
     vm['memory'] = request['memory']
     vm['volume'] = request['volume']
     vm['host_id'] = selected_host['host_id']
-    user['vms'] << vm
 
     if selected_host.is_a?(Integer)
       # 要求が要件を満たさないときホストのIPアドレスでなくエラーコードを受け取る
-      vm['status'] = 'error'
-      vm['message'] = generate_error_message(selected_host)
-      JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
+      control = {'function' => 'VM_CREATE_ACK', 'field' => {}}
+      control['field']['user_id'] = request['user_id']
+      control['field']['vm_id'] = vm['vm_id']
+      control['field']['status'] = 'NG'
+      control['field']['message'] = generate_error_message(selected_host)
+      ControlSender.new(Settings::WEB_SERVER_IP_ADDRESS, Settings::WEB_SERVER_PORT, control.to_json).send
     else
       # VM を作成可能
       vm['status'] = 'processing'
+      user['vms'] << vm
+
+      control = {'function' => 'VM_CREATE_ACK', 'field' => {}}
+      control['field']['user_id'] = request['user_id']
+      control['field']['vm_id'] = vm['vm_id']
+      control['field']['status'] = 'OK'
+      control['field']['message'] = ''
+      ControlSender.new(Settings::WEB_SERVER_IP_ADDRESS, Settings::WEB_SERVER_PORT, control.to_json).send
+
       JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
       control = {'function' => 'VM_CREATE', 'field' => {}}
       control['field']['user_id'] = request['user_id']
@@ -54,10 +65,21 @@ class VirtualMachineManager < ControlManager
     user = JsonAPI.search(users, ['users','user_id',request['user_id']])
     vm = JsonAPI.search(user, ['vms','vm_id',request['vm_id']])
     if checked_host.is_a?(Integer)
-      vm['status'] = 'error'
-      vm['message'] = generate_error_message(selected_host)
-      JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
+      control = {'function' => 'VM_MODIFY_ACK', 'field' => {}}
+      control['field']['user_id'] = request['user_id']
+      control['field']['vm_id'] = vm['vm_id']
+      control['field']['status'] = 'NG'
+      control['field']['message'] = generate_error_message(checked_host)
+      ControlSender.new(Settings::WEB_SERVER_IP_ADDRESS, Settings::WEB_SERVER_PORT, control.to_json).send
     else
+
+      control = {'function' => 'VM_MODIFY_ACK', 'field' => {}}
+      control['field']['user_id'] = request['user_id']
+      control['field']['vm_id'] = vm['vm_id']
+      control['field']['status'] = 'OK'
+      control['field']['message'] = ''
+      ControlSender.new(Settings::WEB_SERVER_IP_ADDRESS, Settings::WEB_SERVER_PORT, control.to_json).send
+
       # VM を編集可能
       vm['status'] = 'processing'
       JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
