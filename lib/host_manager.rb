@@ -7,12 +7,15 @@ class HostManager < ControlManager
   end
 
   def update(request)
-    hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
-    host = JsonAPI.search(hosts, ['hosts','host_id',request['field']['host_id']])
+    hosts_file = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
+    hosts_file = {} unless hosts_file
+    hosts_file['hosts'] = [] unless hosts_file['hosts']
+    search_line = ['hosts','host_id',request['host_id']]
+    host = JsonAPI.search(hosts_file, search_line)
 
     if !host
       host = {'host_id' => request['host_id']}
-      hosts['hosts'] << host
+      hosts_file['hosts'] << host
     end
 
     host['ip_address'] = request['ip_address'] if request['ip_address']
@@ -26,7 +29,7 @@ class HostManager < ControlManager
     host['rest_volume'] = request['rest_volume'] if request['rest_volume']
     host['port'] = request['port'] if request['port']
 
-    JsonAPI.file_writer(data, Settings::HOSTS_FILEPATH)
+    JsonAPI.file_writer(hosts_file, Settings::HOSTS_FILEPATH)
   end
 
 end

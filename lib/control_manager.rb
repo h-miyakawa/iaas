@@ -12,7 +12,7 @@ class ControlManager
     @ack_waitings.each_with_index do |ack_waiting, i|
       match = true
       pairs.each do |key, value|
-        if (key == 'function' && ack_waiting[key] != value) || ack_waiting['field'][key] != value
+        unless (key == 'function' && ack_waiting[key] == value) || ack_waiting['field'][key] == value
           match = false
           break
         end

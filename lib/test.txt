@@ -1,0 +1,15 @@
+lease 192.168.20.4 {
+    starts 6 2009/06/27 00:40:00;
+    ends 6 2009/06/27 12:40:00;
+    hardware ethernet 00:00:00:00:00:00;
+    uid 00:00:00:00:00:00;
+    client-hostname "examle-workstation1";
+}
+
+lease 192.168.20.5 {
+    starts 6 2009/06/27 00:40:00;
+    ends 6 2009/06/27 12:40:00;
+    hardware ethernet 11:11:11:11:11:11;
+    uid 00:00:00:00:00:00;
+    client-hostname "examle-workstation1";
+}

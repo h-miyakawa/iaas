@@ -40,7 +40,6 @@ class RoutingSwitch < Trema::Controller
     @topology = start_topology args
     @ip_address_manager = IPAddressManager.new
     @control_receiver = ControlReceiver.new(@options)
-    @control_receiver.vm_manager.add_ip_address_manager(@ip_address_manager)
     # 制御サーバ起動
     Thread.start(@control_receiver) do |cr|
       cr.start_server

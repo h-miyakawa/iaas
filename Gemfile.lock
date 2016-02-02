@@ -285,6 +285,3 @@ DEPENDENCIES
   ruby-graphviz
   trema
   yard
-
-BUNDLED WITH
-   1.10.6

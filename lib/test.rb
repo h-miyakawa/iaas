@@ -1,20 +1,27 @@
 $LOAD_PATH.unshift File.dirname(__FILE__)
 
 require 'control_receiver'
-require 'ip_address_manager'
 
 class Test
 
+  class Options
+    attr_reader :slicing
+
+    def initialize
+      @slicing = false
+    end
+  end
+
 	def initialize
-		@iam = IPAddressManager.new
+    @opt = Options.new
+		@cr = ControlReceiver.new(@opt)
 	end
 
 	def start
-		@iam.start_manager
+		@cr.start_server
 	end
 
 end
 
 p = Test.new
 p.start
-

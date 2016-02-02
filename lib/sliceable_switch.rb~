@@ -13,7 +13,6 @@ class SliceableSwitch < PathManager
   def packet_in(_dpid, packet_in)
     slice = find_slice(packet_in.slice_source,
                        packet_in.slice_destination(@graph))
-
     if slice
       path = maybe_create_shortest_path_in_slice(slice.name, packet_in)
       packet_out_to_destination(packet_in, path.out_port) if path
