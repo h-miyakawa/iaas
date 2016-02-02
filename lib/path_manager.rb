@@ -4,6 +4,9 @@ require 'trema'
 
 # L2 routing path manager
 class PathManager < Trema::Controller
+
+  attr_reader :topology
+
   def start
     @observers = []
     @graph = Graph.new

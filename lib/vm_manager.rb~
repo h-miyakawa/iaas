@@ -109,6 +109,14 @@ class VirtualMachineManager < ControlManager
     host = JsonAPI.search(hosts, search_line)
     vm['status'] = 'processing'
     JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
+
+    control = {'function' => 'VM_DELETE_ACK', 'field' => {}}
+    control['field']['user_id'] = request['user_id']
+    control['field']['vm_id'] = vm['vm_id']
+    control['field']['status'] = 'OK'
+    control['field']['message'] = ''
+    ControlSender.new(Settings::WEB_SERVER_IP_ADDRESS, Settings::WEB_SERVER_PORT, control.to_json).send
+
     control = {'function' => 'VM_DELETE', 'field' => {}}
     control['field']['user_id'] = request['user_id']
     control['field']['vm_id'] = request['vm_id']
@@ -173,7 +181,7 @@ class VirtualMachineManager < ControlManager
         Slice.find_by!(name: user['user_id']).
           add_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
       end
-      #ip_address_manager_add_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
+      ip_address_manager_add_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
     else
       vm['status'] = 'error'
       vm['message'] = response['message']
@@ -220,7 +228,7 @@ class VirtualMachineManager < ControlManager
         Slice.find_by!(name: user['user_id']).
           delete_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
       end
-      #ip_address_manager_delete_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
+      ip_address_manager_delete_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
     else
       vm['status'] = 'standby'
       vm['message'] = response['message']
