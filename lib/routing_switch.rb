@@ -51,6 +51,8 @@ class RoutingSwitch < Trema::Controller
     end
     @control_receiver.add_fw_manager(self)
     @num_icmp = {}
+    @threshold = 3
+    @protocol_number = 1 #udp:17, icmp:1?
     logger.info 'Routing Switch started.'
   end
 
@@ -76,15 +78,14 @@ class RoutingSwitch < Trema::Controller
 
         # count ICMP packet
         data = message.data
-        if ((data[:ether_type] == 0x0800) && (data[:ip_protocol] == 17))
+        if ((data[:ether_type] == 0x0800) && (data[:ip_protocol] == @protocol_number))
           src = data[:source_ip_address].to_s
-          puts src
           unless @num_icmp.has_key?(src) then
             @num_icmp[src] = 1
           else
             @num_icmp[src] = @num_icmp[src] + 1
-            if (@num_icmp[src] > 3) then
-              puts "over"
+            if (@num_icmp[src] > @threshold) then
+              puts "block", src
               options = {:ether_type => 0x0800,
                 :source_ip_address => src
               }
