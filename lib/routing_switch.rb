@@ -36,6 +36,7 @@ class RoutingSwitch < Trema::Controller
     @options = Options.new(args)
     @path_manager = start_path_manager
     @topology = start_topology args
+    @num_icmp = {}
     logger.info 'Routing Switch started.'
   end
 
@@ -49,43 +50,27 @@ class RoutingSwitch < Trema::Controller
     @topology.packet_in(dpid, message)
 
     unless message.lldp? then
+      puts "packet_in"
+
       @path_manager.packet_in(dpid, message)
 
-      # puts "packet_in not lldp"
-      # puts message.data[:ip_protocol]
-
-      options = {}
-      options[:ether_type] = 0x0800
-      options[:source_ip_address] =  message.source_ip_address
-      options[:ip_protocol] = 17
-      # options[:destination_ip_address] = message.destination_ip_address
-      # add_block_entry(
-      #   100,
-      #   options
-      # )
-      # delete_firewall_entry(
-      #   100,
-      #   options
-      # )
-      send_flow_mod_add(
-        dpid,
-        priority: 100,
-        match: Match.new(options),
-        actions: SendOutPort.new(2)
-      )
-
-      dump_flows = `sudo ovs-ofctl dump-flows brswitch1`.split("\n")
-      dump_flows.each do |dump_flow|
-        if dump_flow.include?("udp") then
-          if dump_flow =~ /n_packets=(\d+)/ then
-             @n_packets = $1
-             break
+      # count ICMP packet
+      data = message.data
+      if ((data[:ether_type] == 0x0800) && (data[:ip_protocol] == 17))
+        src = data[:source_ip_address].to_s
+        puts src
+        unless @num_icmp.has_key?(src) then
+          @num_icmp[src] = 1
+        else
+          @num_icmp[src] = @num_icmp[src] + 1
+          if (@num_icmp[src] > 3) then
+            puts "over"
+            options = {:ether_type => 0x0800,
+              :source_ip_address => src
+            }
+            add_block_entry(10, options)
           end
         end
-      end
-      # filter
-      if (@n_packets.to_i > 3) then
-        puts "n_packets: ", @n_packets
       end
     end
   end
