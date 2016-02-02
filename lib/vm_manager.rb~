@@ -105,7 +105,7 @@ class VirtualMachineManager < ControlManager
     user = JsonAPI.search(users, search_line)
     search_line = ['vms','vm_id',request['vm_id']]
     vm = JsonAPI.search(user, search_line)
-    search_line = ['host','host_id',vm['host_id']]
+    search_line = ['hosts','host_id',vm['host_id']]
     host = JsonAPI.search(hosts, search_line)
     vm['status'] = 'processing'
     JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
@@ -173,7 +173,7 @@ class VirtualMachineManager < ControlManager
         Slice.find_by!(name: user['user_id']).
           add_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
       end
-      ip_address_manager_add_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
+      #ip_address_manager_add_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
     else
       vm['status'] = 'error'
       vm['message'] = response['message']
@@ -220,7 +220,7 @@ class VirtualMachineManager < ControlManager
         Slice.find_by!(name: user['user_id']).
           delete_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
       end
-      ip_address_manager_delete_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
+      #ip_address_manager_delete_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
     else
       vm['status'] = 'standby'
       vm['message'] = response['message']
@@ -269,7 +269,7 @@ class VirtualMachineManager < ControlManager
     hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
     search_line = ['users','user_id',request['user_id'],'vms','vm_id',request['vm_id']]
     vm = JsonAPI.search(users, search_line)
-    search_line = ['host','host_id',vm['host_id']]
+    search_line = ['hosts','host_id',vm['host_id']]
     host = JsonAPI.search(hosts, search_line)
 
     cpu = request['cpu'].to_i
@@ -290,7 +290,7 @@ class VirtualMachineManager < ControlManager
 
     sum = 0
     # CPU の要求が要件を満たしていません
-    sum += 4 if cpu < host['min_cpu'] || cpu > host['max_cpu']
+    sum += 4 if cpu < min_cpu || cpu > max_cpu
     # 現在，その Memory の要求を受付できません
     sum += 8 if diff_memory > rest_memory
     # Memory の要求が要件を満たしていません

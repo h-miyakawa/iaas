@@ -1,1 +1,1 @@
-{"hosts":[{"host_id":"2","ip_address":"192.168.100.103","min_cpu":"1","max_cpu":"4","min_memory":"768","max_memory":"10280","min_volume":"8","max_volume":"100","rest_memory":"10280","rest_volume":"116.547"}]}
+{"hosts":[{"host_id":"2","ip_address":"192.168.100.103","min_cpu":"1","max_cpu":"4","min_memory":"768","max_memory":"10280","min_volume":"8","max_volume":"100","rest_memory":"8744","rest_volume":"104.129"}]}

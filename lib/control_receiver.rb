@@ -8,7 +8,7 @@ require 'control_sender'
 
 class ControlReceiver
 
-  :attr_reader :vm_manager
+  attr_reader :vm_manager
 
   def initialize(options)
     @vm_manager = VirtualMachineManager.new(options)
