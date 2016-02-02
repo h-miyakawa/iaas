@@ -47,14 +47,17 @@ class RoutingSwitch < Trema::Controller
   def packet_in(dpid, message)
 
     @topology.packet_in(dpid, message)
-    @path_manager.packet_in(dpid, message) unless message.lldp?
 
     unless message.lldp? then
-      puts "packet_in not lldp"
-      puts message.data[:ip_protocol]
+      @path_manager.packet_in(dpid, message)
+
+      # puts "packet_in not lldp"
+      # puts message.data[:ip_protocol]
+
       options = {}
       options[:ether_type] = 0x0800
       options[:source_ip_address] =  message.source_ip_address
+      options[:ip_protocol] = 17
       # options[:destination_ip_address] = message.destination_ip_address
       # add_block_entry(
       #   100,
@@ -64,6 +67,26 @@ class RoutingSwitch < Trema::Controller
       #   100,
       #   options
       # )
+      send_flow_mod_add(
+        dpid,
+        priority: 100,
+        match: Match.new(options),
+        actions: SendOutPort.new(2)
+      )
+
+      dump_flows = `sudo ovs-ofctl dump-flows brswitch1`.split("\n")
+      dump_flows.each do |dump_flow|
+        if dump_flow.include?("udp") then
+          if dump_flow =~ /n_packets=(\d+)/ then
+             @n_packets = $1
+             break
+          end
+        end
+      end
+      # filter
+      if (@n_packets.to_i > 3) then
+        puts "n_packets: ", @n_packets
+      end
     end
   end
 
