@@ -49,7 +49,8 @@ class RoutingSwitch < Trema::Controller
     Thread.start(@ip_address_manager) do |iam|
       iam.start_manager
     end
-    @control_receiver.add_observer(self)
+    @control_receiver.add_fw_manager(self)
+    @num_icmp = {}
     logger.info 'Routing Switch started.'
   end
 
@@ -69,13 +70,31 @@ class RoutingSwitch < Trema::Controller
       )
     else
       @topology.packet_in(dpid, message)
-      @path_manager.packet_in(dpid, message) unless message.lldp?
-      # print message
-      add_block_entry(message.source_ip_address,
-        message.destination_ip_address,
-        100) unless message.lldp?
-    end
-  end
+      unless message.lldp? then
+        puts "packet_in"
+        @path_manager.packet_in(dpid, message)
+
+        # count ICMP packet
+        data = message.data
+        if ((data[:ether_type] == 0x0800) && (data[:ip_protocol] == 17))
+          src = data[:source_ip_address].to_s
+          puts src
+          unless @num_icmp.has_key?(src) then
+            @num_icmp[src] = 1
+          else
+            @num_icmp[src] = @num_icmp[src] + 1
+            if (@num_icmp[src] > 3) then
+              puts "over"
+              options = {:ether_type => 0x0800,
+                :source_ip_address => src
+              }
+              add_block_entry(10, options)
+            end # if
+          end # unless
+        end # if
+      end # unless
+    end # case
+  end # def
 
   private
 
@@ -96,51 +115,57 @@ class RoutingSwitch < Trema::Controller
     end
   end
 
-
-  # def delete_firewall_flow_entry()
-  # end # delete_firewall_flow_entry
-
-  # black list
-#   def add_firewall_flow_entry()
-#       send_flow_mod_add(
-#         datapath_id,
-#         match: Match.new(
-#           ip_source_address: src_ip_for_blocking,
-#           ip_destination_address: dest_ip_for_blocking,
-#           transport_source_port: src_port_for_blocking,
-#           transport_destination_port: dest_port_for_blocking
-#         )
-#       )
-#   end # add_firewall_flow_entry
-
-  def add_block_entry(
-    ip_src,
-    ip_dst,
-    priority
-    )
-
-    # get datapath id from ip address
-    @foo = ""
+  # ip_src = options[:source_ip_address]
+  # # get datapath id from ip address
+  # host_info = get_host_info_from_ip(ip_src)
+  # @_dpid = host_info[:dpid]
+  def get_host_info_from_ip(ip_addr)
     hosts = @path_manager.topology.hosts.each_with_object({}) do |host, tmp|
       mac_address, ip_address, dpid, port_no = *host
-      if ip_address = ip_src then
-        @foo = dpid
-        @port = port_no
-        print "found"
+      if ip_address == ip_addr then
+        host_info = {}
+        host_info[:dpid] = dpid
+        host_info[:port_no] = port_no
+        return host_info
       end
     end
+  end
 
-    print @foo
-    # add flow entry
-    # oldfathioned? nw_dst: ip_dst, dl_type: 0x0800
-    send_flow_mod_add(
-      @foo,
-      priority: priority,
-      match: Match.new(
-        ip_source_address: ip_src,
-        ip_destination_address: ip_dst),
-      actions: SendOutPort.new(@port)
-    )
+  def get_dpid_list
+    list = Array.new
+    @path_manager.topology.hosts.each_with_object({}) do |host, tmp|
+      mac_address, ip_address, dpid, port_no = *host
+      unless list.include?(dpid)  then
+        list << dpid
+      end
+    end
+    return list
+  end
+
+  def delete_firewall_entry(user_id, priority, options)
+    dpids = get_dpid_list
+    dpids.each do |dpid|
+      # TCP: ip_protocol:6 
+      send_flow_mod_delete(
+        @_dpid,
+        priority: priority,
+        match: Match.new(options),
+      )
+    end
+  end # delete_firewall_flow_entry
+
+  def add_block_entry(user_id, priority, options)
+    dpids = get_dpid_list
+    dpids.each do |dpid|
+      # add flow entry
+      # TCP: ip_protocol:6 
+      send_flow_mod_add(
+        dpid,
+        priority: priority,
+        match: Match.new(options),
+        # actions: SendOutPort.new(@port)
+      )
+    end
   end
 
 end
