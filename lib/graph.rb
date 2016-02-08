@@ -29,6 +29,7 @@ class Graph
   def external_ports
     @graph.select do |key, value|
       key.is_a?(Topology::Port) && value.size == 1
+      #key.is_a?(Topology::Port)
     end.keys
   end
 

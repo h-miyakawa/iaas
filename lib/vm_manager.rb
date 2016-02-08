@@ -33,6 +33,7 @@ class VirtualMachineManager < ControlManager
       vm['volume'] = request['volume']
       vm['host_id'] = selected_host['host_id']
       vm['status'] = 'processing'
+      user['vms'] = [] unless user['vms']
       user['vms'] << vm
       JsonAPI.file_writer(users, Settings::USERS_FILEPATH)
 
@@ -126,6 +127,7 @@ class VirtualMachineManager < ControlManager
 
   # VM_START
   def start(request)
+    puts "vm_start"
     users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
     hosts = JsonAPI.file_reader(Settings::HOSTS_FILEPATH)
     search_line = ['users','user_id',request['user_id']]
@@ -181,7 +183,6 @@ class VirtualMachineManager < ControlManager
         Slice.find_by!(name: user['user_id']).
           add_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
       end
-      #ip_address_manager_add_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
     else
       vm['status'] = 'error'
       vm['message'] = response['message']
@@ -228,7 +229,6 @@ class VirtualMachineManager < ControlManager
         Slice.find_by!(name: user['user_id']).
           delete_mac_address(vm['mac_address'], dpid: port[:dpid], port_no: port[:port_no])
       end
-      #ip_address_manager_delete_vm(user['user_id'],vm['vm_id'],vm['mac_address'])
     else
       vm['status'] = 'standby'
       vm['message'] = response['message']
@@ -388,6 +388,7 @@ class VirtualMachineManager < ControlManager
   def check_mac_address_collision(mac_str)
     users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
     users['users'].each do |user|
+      user['vms'] = [] unless user['vms']
       user['vms'].each do |vm|
         return true if vm['mac_address'] == mac_str
       end
@@ -395,16 +396,5 @@ class VirtualMachineManager < ControlManager
     return false
   end
 
-  def add_ip_address_manager(ip_address_manager)
-    @ip_address_manager = ip_address_manager
-  end
-
-  def ip_address_manager_add_vm(user_id, vm_id, mac_address)
-    @ip_address_manager.add_vm(user_id, vm_id, mac_address)
-  end
-
-  def ip_address_manager_delete_vm(user_id, vm_id, mac_address)
-    @ip_address_manager.delete_vm(user_id, vm_id, mac_address)
-  end
 
 end

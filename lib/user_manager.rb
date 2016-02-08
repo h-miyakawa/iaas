@@ -9,8 +9,10 @@ class UserManager < ControlManager
 
   def create(request)
     users = JsonAPI.file_reader(Settings::USERS_FILEPATH)
+    #users = {} unless users
     search_line = ['users','user_id',request['user_id']]
     user = JsonAPI.search(users, search_line)
+    #user = {} unless user
     Slice.create(user['user_id']) if @options.slicing
     user['fw_rule'] = []
     user['vms'] = []
@@ -32,7 +34,9 @@ class UserManager < ControlManager
     search_line = ['users','user_id',request['user_id']]
     user = JsonAPI.search(users, search_line)
     controls = {}
-
+    puts hosts.to_s
+    
+    user['vms'] = [] unless user['vms']
     user['vms'].each do |vm|
       host_id = vm['host_id']
       if !controls[host_id]
@@ -45,6 +49,7 @@ class UserManager < ControlManager
     end
 
     controls.each do |host_id, control|
+      puts "host_id: " + host_id.to_s
       search_line = ['hosts','host_id',host_id,'ip_address']
       ip_address = JsonAPI.search(hosts, search_line)
       @ack_waitings << control

@@ -70,7 +70,7 @@ class RoutingSwitch < Trema::Controller
       #puts 'dhcp' if is_dhcp(message)
       #send_packet_out(dpid, packet_in: message, actions: SendOutPort.new(:flood)) if is_dhcp(message)
 
-      #@path_manager.packet_in(dpid, message)
+      @path_manager.packet_in(dpid, message)
 
       # count ICMP packet
       data = message.data
@@ -94,18 +94,18 @@ class RoutingSwitch < Trema::Controller
   end # def
 
   def init_hosts
-    @hosts = []
-    @hosts << {:mac_address => "52:42:49:9a:10:3f", :ip_address => '192.168.1.55', :dpid => 0xb, :port_no => 13}
-    @hosts << {:mac_address => "52:42:49:99:a1:b3", :ip_address => '192.168.1.44', :dpid => 0xa, :port_no => 1}
-    @hosts << {:mac_address => "08:00:27:74:6d:e1", :ip_address => '192.168.1.10', :dpid => 0xc, :port_no => 25}
+    @hosts = {}
+    @hosts["52:42:49:9a:10:3f"] = {:ip_address => '192.168.1.55', :dpid => 0xb, :port_no => 13}
+    @hosts["52:42:49:99:a1:b3"] = {:ip_address => '192.168.1.44', :dpid => 0xa, :port_no => 1}
+    @hosts["08:00:27:74:6d:e1"] = {:ip_address => '192.168.1.10', :dpid => 0xc, :port_no => 25}
   end
 
 
   def add_host(*host)
     mac_address, _ip_address, dpid, port_no = *host
-    return if @hosts.find {|_host| _host[:mac_address] == mac_address.to_s}
-    new_host = {:mac_address => mac_address.to_s, :ip_address => _ip_address.to_s, :dpid => dpid, :port_no => port_no}
-    @hosts << new_host
+    return @hosts[mac_address.to_s]
+    new_host = {:ip_address => _ip_address.to_s, :dpid => dpid, :port_no => port_no}
+    @hosts[mac_address.to_s] = new_host
   end 
 
   private
@@ -121,13 +121,21 @@ class RoutingSwitch < Trema::Controller
     if packet_in.data.class.to_s == "Pio::Arp::Reply"
       puts "dest mac: " + destination_mac
     end
-
+    @hosts.each do |key, value|
+      # puts "key class: " + key.class.to_s
+      # puts "key: " + key
+      if key.eql?(destination_mac) then
+        puts "equal:" + key + "and " + destination_mac
+      else
+        puts "not equal:" + key + "and " + destination_mac
+      end
+    end
     #puts "length check " + @hosts.length.to_s
-    if host = @hosts.find {|_host| strcmp(_host[:mac_address], destination_mac)}
+    if @hosts.key?(destination_mac)
+      host = @hosts[destination_mac]
       puts 'unicast ' + host[:dpid].to_s + ' ' + host[:port_no].to_s
       send_packet_out(host[:dpid], packet_in: packet_in, actions: SendOutPort.new(host[:port_no]))
-      puts "send_packet_out " + host[:dpid].to_s + ':' + host[:port_no].to_s
-    elsif strcmp(destination_mac.to_s,"ff:ff:ff:ff:ff:ff")
+    elsif destination_mac == 'ff:ff:ff:ff:ff:ff'
       puts 'flooding'
       flooding(source_mac, packet_in)
     else
@@ -136,26 +144,18 @@ class RoutingSwitch < Trema::Controller
   end
 
   def flooding(source_mac, packet_in)
-    @hosts.each do |host|
-      next if strcmp(host[:mac_address], source_mac)
-      send_packet_out(host[:dpid], packet_in: packet_in, actions: SendOutPort.new(host[:port_no]))
-      puts "send_packet_out " + host[:dpid].to_s + ':' + host[:port_no].to_s
+    @hosts.each do |mac_address, _host|
+      next if mac_address == source_mac
+      #puts _host[:dpid].to_s + ' ' + _host[:port_no].to_s
+      send_packet_out(_host[:dpid], packet_in: packet_in, actions: SendOutPort.new(_host[:port_no]))
     end
   end
 
   def broadcast(packet_in)
-    @hosts.each do |host|
-      send_packet_out(host[:dpid], packet_in: packet_in, actions: SendOutPort.new(host[:port_no]))
-      puts "send_packet_out " + host[:dpid].to_s + ':' + host[:port_no].to_s
+    @hosts.each do |mac_address, _host|
+      puts _host[:dpid].to_s + ' ' + _host[:port_no].to_s
+      send_packet_out(_host[:dpid], packet_in: packet_in, actions: SendOutPort.new(_host[:port_no]))
     end
-  end
-
-  def strcmp(a, b)
-    puts "--"
-    puts a.gsub(':','')
-    puts b.gsub(':','')
-    puts "--"
-    return a.gsub(':','') == b.gsub(':','')
   end
 
   def start_path_manager

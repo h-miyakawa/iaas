@@ -70,7 +70,7 @@ class Topology
   end
 
   def maybe_add_host(*host)
-    #host_update(host)
+    host_update(host)
     return if @hosts.include?(host)
     @hosts << host
     mac_address, _ip_address, dpid, port_no = *host
