@@ -1,1 +1,0 @@
-{"users":[{"user_id":"test","password":"pass","fw_rule":[],"vms":[{"vm_id":"1","mac_address":"de:ca:de:5a:2a:c1","cpu":"1","memory":"768","volume":"8","host_id":"2","status":"standby","message":null,"ip_address":"192.168.1.214"}]}]}
