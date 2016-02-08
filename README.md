@@ -1,95 +1,52 @@
-Routing Switch
-==============
-[![Build Status](http://img.shields.io/travis/trema/routing_switch/develop.svg?style=flat)][travis]
-[![Code Climate](http://img.shields.io/codeclimate/github/trema/routing_switch.svg?style=flat)][codeclimate]
-[![Coverage Status](http://img.shields.io/codeclimate/coverage/github/trema/routing_switch.svg?style=flat)][codeclimate]
-[![Dependency Status](http://img.shields.io/gemnasium/trema/routing_switch.svg?style=flat)][gemnasium]
+# 不正アクセス検知機能を持つ仮想ファイアフォールを備えた IaaS
 
-This is a layer 2 switch application with virtual slicing
-function. The slicing function allows us to create multiple layer 2
-domains. This is similar to MAC-based VLAN but there is no limitation
-on VLAN ID space.
+## 概要
+Virtualbox と OpenFlow を用いてファイアウォール機能を備えた MiniIaaS
+を作成しました。ユーザ（クラウド利用者）は Web インターフェースにより
+仮想マシン（VM）を作成・編集・削除・起動・停止することができ、さらにユーザ単位で希望する
+ファイアウォールのルールを設定できます。
 
-[travis]: http://travis-ci.org/trema/routing_switch
-[codeclimate]: https://codeclimate.com/github/trema/routing_switch
-[gemnasium]: https://gemnasium.com/trema/routing_switch
+また、クラウド側のネットワーク及びこのファイアウォール機能は
+OpenFlow（Trema）によって実現されており、
+不正なアクセス（ICMP Flood）を自動検知し遮断する機能も備えています。
+これにより、遮断された不正アクセス元についての情報（Blacklist）は全てのユーザの通信ルールに反映され、
+IaaS上に作成された全てのVMをセキュリティ脅威から守ります。
 
 
-Prerequisites
--------------
 
-* Ruby 2.0.0 or higher ([RVM][rvm]).
-* [Open vSwitch][openvswitch] (`apt-get install openvswitch-switch`).
-
-[rvm]: https://rvm.io/
-[openvswitch]: https://openvswitch.org/
+### 紹介用ポスター
+（ポスター画像はる）
 
 
-Install
--------
+## デモ（使い方）
 
-```bash
-git clone https://github.com/trema/routing_switch.git
-cd routing_switch
-bundle install --binstubs
+### デモの内容
+ユーザが VM を作成し、起動するまでの設定・操作方法を記します。
+
+### Controller の設定
+1. 〜〜から VM イメージをダウンロード。Virtualbox で起動。
+1. ID:ensyuu2 / Password:ensyuu2 でログイン。
+1. Controller に IP アドレスを設定
+  * Web サーバ/DHCP サーバ 用に NIC を一つ用意
+  * そのインターフェース（eth0） に静的 IP アドレスを設定
+1. 以下のコマンドを実行して DHCP サーバを起動
+```
+$ sudo service isc-dhcp-server start
+```
+1. ~/git/iaas/ に移動し、以下のコマンドを実行して Controller を起動
+```
+$ ruby ./test.rb
 ```
 
+### PM (Physical Machine) の設定
+（PMの設定をかく）
 
-Play
-----
 
-To run without virtual slicing, run `lib/routing_switch.rb` as
-follows:
+### 使用例
 
-```bash
-./bin/trema run lib/routing_switch.rb -c trema.conf
+1. ユーザの PC から Web ブラウザで Controller にアクセス
 ```
-
-To run with virtual slicing support, run `lib/routing_switch.rb` with
-`-- --slicing` options as follows:
-
-```bash
-./bin/trema run lib/routing_switch.rb -c trema.conf -- --slicing
+ http://(ControllerのIPアドレス)/CodeIgnitor/form_murata
 ```
+2. あああ
 
-In another terminal, you can create virtual slices with the following
-command:
-
-```bash
-./bin/slice add foo
-```
-
-Then add hosts to the slice with the following command:
-
-```bash
-./bin/slice add_host --mac 11:11:11:11:11:11 --port 0x1:1 --slice foo
-```
-
-
-REST API
---------
-
-To start the REST API server:
-
-```bash
-./bin/rackup
-```
-
-### Supported APIs
-
-Read [this](https://relishapp.com/trema/routing-switch/docs/rest-api) for details.
-
-Description                 | Method | URI
-----------------------------|--------|--------------------------------------------------------------
-Create a slice              | POST   | `/slices`
-Delete a slice              | DELETE | `/slices`
-List slices                 | GET    | `/slices`
-Shows a slice               | GET    | `/slices/:slice_id`
-Add a port to a slice       | POST   | `/slices/:slice_id/ports`
-Delete a port from a slice  | DELETE | `/slices/:slice_id/ports`
-List ports                  | GET    | `/slices/:slice_id/ports`
-Shows a port                | GET    | `/slices/:slice_id/ports/:port_id`
-Adds a host to a slice      | POST   | `/slices/:slice_id/ports/:port_id/mac_addresses`
-Deletes a host from a slice | DELETE | `/slices/:slice_id/ports/:port_id/mac_addresses`
-List MAC addresses          | GET    | `/slices/:slice_id/ports/:port_id/mac_addresses`
-Shows a MAC address         | GET    | `/slices/:slice_id/ports/:port_id/mac_addresses/:mac_address`
