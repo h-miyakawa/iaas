@@ -1,4 +1,4 @@
-# 不正アクセス検知機能を持つ仮想FWを備えた IaaS
+# 不正アクセス検知機能を持つ仮想FWを備えたIaaS
 
 ## 概要
 Virtualbox と OpenFlow を用いて FW（ファイアウォール）機能を備えた MiniIaaS
@@ -6,7 +6,7 @@ Virtualbox と OpenFlow を用いて FW（ファイアウォール）機能を�
 仮想マシン（VM）を作成・編集・削除・起動・停止することができ、さらにユーザ単位で希望する
 ファイアウォールのルールを設定できます。
 
-また、クラウド側のネットワーク及びこのファイアウォール機能は
+また、（クラウド側のネットワークと）この FW 機能は
 OpenFlow（Trema）によって実現されており、
 不正なアクセス（ICMP Flood）を自動検知し遮断する機能も備えています。
 これにより、遮断された不正アクセス元についての情報（Blacklist）は全てのユーザの通信ルールに反映され、
@@ -14,9 +14,16 @@ IaaS上に作成された全てのVMをセキュリティ脅威から守りま�
 
 
 
-### 紹介用ポスター
+## 紹介用ポスター
 （ポスター画像はる）
 
+
+
+## 成果物の説明
+* 基本的に全て Controller のソースコード
+    * Controller および VM の操作に関するモジュールは主に /lib/ に配置
+* /CodeIgnitor.zip
+    * Web コンテンツ。解凍して Web サーバの DocumentRoot に配置して使用
 
 ## デモ（使い方）
 
@@ -46,7 +53,7 @@ $ ruby ./test.rb
 
 1. ユーザの PC から Web ブラウザで Controller にアクセス
 ```
- http://(ControllerのIPアドレス)/CodeIgnitor/form_murata
+ http://(ControllerのIPアドレス)/CodeIgniter/form_murata
 ```
 2. あああ
 
