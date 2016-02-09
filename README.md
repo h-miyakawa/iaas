@@ -9,15 +9,13 @@ FW のルールを設定できます。
 また、（クラウド側のネットワークと）この FW 機能は
 OpenFlow（Trema）によって実現されており、
 不正なアクセス（ICMP Flood）を自動検知し遮断する機能も備えています。
-これにより、遮断された不正アクセス元についての情報（Blacklist）は全てのユーザの通信ルールに反映され、
+これにより、遮断されるべき不正アクセス元の情報（Blacklist）は全てのユーザの通信ルールに反映され、
 IaaS上に作成された全てのVMをセキュリティ脅威から守ります。
 
 
 
 ## 紹介用ポスター
-（ポスター画像はる）
-
-
+[ポスターはこちら](./img/enshu_poster_final.pdf)
 
 ## 成果物の説明
 * 基本的に全て Controller のソースコード
@@ -55,5 +53,23 @@ $ ruby ./test.rb
 ```
  http://(ControllerのIPアドレス)/CodeIgniter/form_murata
 ```
-2. あああ
+2. 「新規登録」をクリックし、ユーザ作成画面でユーザを作成してログイン
 
+ <img src="./img/WS000001.BMP" width="320" height="200">
+ <img src="./img/WS000002.BMP" width="320" height="200">
+
+3. 「アクション」から「VM_CREATE」を選択
+
+ <img src="./img/WS000006.BMP" width="320" height="200">
+
+4. VM の情報を入力し、VM を作成（作成には時間がかかります）
+
+  <img src="./img/WS000007.BMP" width="320" height="200">
+  <img src="./img/WS000009.BMP" width="320" height="200">
+
+5. VM の状態が「停止中」になった後、「起動する」ボタンを押下
+
+ <img src="./img/WS000010.BMP" width="320" height="200">
+
+6. VM が起動すると管理画面にて IP アドレスが表示されるので ssh でアクセス
+    * ID: root / Password: password
