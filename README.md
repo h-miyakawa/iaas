@@ -124,9 +124,10 @@ $ ruby ./test.rb
 4. VM の情報を入力し、VM を作成（作成には時間がかかります）
 
   <img src="./img/WS000007.BMP" width="480" height="300">
-  <img src="./img/WS000009.BMP" width="480" height="300">
 
 5. VM を起動するために、「アクション」から「VM_STATE_CHANGE」を選択
+
+  <img src="./img/WS000009.BMP" width="480" height="300">
 
 6. 起動するVMの「起動する」ボタンを押下
 
