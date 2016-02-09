@@ -142,7 +142,7 @@ $ ruby ./test.rb
 
 6. VM の状態が「停止中」になった後、「起動する」ボタンを押下
 
- <img src="./img/WS000010.BMP" width="480" height="300">
+ <img src="./img/vm_status_change.png" width="480" height="300">
 
 6. VM が起動すると管理画面にて IP アドレスが表示されるので ssh でアクセス
     * ID: root / Password: password
