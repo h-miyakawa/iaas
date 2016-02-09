@@ -55,21 +55,21 @@ $ ruby ./test.rb
 ```
 2. 「新規登録」をクリックし、ユーザ作成画面でユーザを作成してログイン
 
- <img src="./img/WS000001.BMP" width="320" height="200">
- <img src="./img/WS000002.BMP" width="320" height="200">
+ <img src="./img/WS000001.BMP" width="480" height="300">
+ <img src="./img/WS000002.BMP" width="480" height="300">
 
 3. 「アクション」から「VM_CREATE」を選択
 
- <img src="./img/WS000006.BMP" width="320" height="200">
+ <img src="./img/WS000006.BMP" width="480" height="300">
 
 4. VM の情報を入力し、VM を作成（作成には時間がかかります）
 
-  <img src="./img/WS000007.BMP" width="320" height="200">
-  <img src="./img/WS000009.BMP" width="320" height="200">
+  <img src="./img/WS000007.BMP" width="480" height="300">
+  <img src="./img/WS000009.BMP" width="480" height="300">
 
 5. VM の状態が「停止中」になった後、「起動する」ボタンを押下
 
- <img src="./img/WS000010.BMP" width="320" height="200">
+ <img src="./img/WS000010.BMP" width="480" height="300">
 
 6. VM が起動すると管理画面にて IP アドレスが表示されるので ssh でアクセス
     * ID: root / Password: password
