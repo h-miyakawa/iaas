@@ -95,9 +95,10 @@ $ ruby ./test.rb
 ```
 
 ### PM (Physical Machine) の設定
-1. Virtualbox, Rubyの実行環境 をインストール
 
-2. ホームディレクトリ(C:\Users\#{ユーザ名})に host.rb, vm_memories.json, 仮想アプライアンス([centos.ova](http://www.anarg.jp/enshuu2/centos.ova))をコピー
+1. Virtualbox及びRubyの実行環境 をインストール
+
+2. ホームディレクトリ(C:\Users\#{ユーザ名})に host/host.rb, host/vm_memories.json, 仮想アプライアンス([centos.ova](http://www.anarg.jp/enshuu2/centos.ova))をコピー
 
 3. host.rb ファイルの initialize メソッド内の設定を環境に合わせた文字列・値に変更
    * @home … ホームディレクトリのパス
