@@ -29,7 +29,7 @@ IaaS上に作成された全てのVMをセキュリティ脅威から守りま�
 ユーザが VM を作成し、起動するまでの設定・操作方法を記します。
 
 ### Controller の設定
-1. 〜〜から VM イメージをダウンロード。Virtualbox で起動。
+1. ??から VM イメージをダウンロード。Virtualbox で起動。
 1. ID:ensyuu2 / Password:ensyuu2 でログイン。
 1. Controller に IP アドレスを設定
   * Web サーバ/DHCP サーバ 用に NIC を一つ用意
@@ -44,8 +44,15 @@ $ ruby ./test.rb
 ```
 
 ### PM (Physical Machine) の設定
-（PMの設定をかく）
+1.ホームディレクトリ(C:\Users\#{ユーザ名})に「host.rb」「vm_memories.json」を置く
 
+2. host.rb ファイルの initialize メソッド内の設定
+@home … ホームディレクトリのパス
+@ctrl_ip … コントローラのIPアドレス
+@ova … 使用する仮想アプライアンスのファイル名
+@adapter … ブリッジ接続に使用するネットワークアダプタ名
+※「コントロール パネル\ネットワークとインターネット\ネットワーク接続」で表示されるアダプタ名をそのままコピペする
+@rest_memory … 最大利用可能メモリ数(MB)(ホストマシンのスペックを超えないように)
 
 ### 使用例
 
