@@ -22,6 +22,8 @@ IaaS上に作成された全てのVMをセキュリティ脅威から守りま�
     * Controller および VM の操作に関するモジュールは主に /lib/ に配置
 * /CodeIgniter.zip
     * Web コンテンツ。解凍して Web サーバの DocumentRoot に配置して使用
+* host/host.rb
+    * ホストが Controller から命令を受信してコマンドを実行するためのプログラム
 
 ## Webインターフェースの使い方
 1. Webページへアクセス
@@ -75,7 +77,7 @@ IaaS上に作成された全てのVMをセキュリティ脅威から守りま�
 ユーザが VM を作成し、起動するまでの設定・操作方法を記します。
 
 ### Controller の設定
-1. ??から VM イメージをダウンロード。Virtualbox で起動。
+1. [ここ](http://www.anarg.jp/enshuu2/miniiaas_controller_20160203.ova)から VM イメージをダウンロード。Virtualbox で起動。
 1. ID:ensyuu2 / Password:ensyuu2 でログイン。
 1. Controller に IP アドレスを設定
   * Web サーバ/DHCP サーバ 用に NIC を一つ用意
@@ -90,9 +92,9 @@ $ ruby ./test.rb
 ```
 
 ### PM (Physical Machine) の設定
-1. ホームディレクトリ(C:\Users\#{ユーザ名})に host.rb, vm_memories.json, 仮想アプライアンス(centos.ova)を置く
+1. ホームディレクトリ(C:\Users\#{ユーザ名})に host.rb, vm_memories.json, 仮想アプライアンス([centos.ova](http://www.anarg.jp/enshuu2/centos.ova))を置く
 
-2. host.rb ファイルの initialize メソッド内の設定
+2. host.rb ファイルの initialize メソッド内の設定を環境に合わせた文字列・値に変更する
    * @home … ホームディレクトリのパス
    * @ctrl_ip … Controller のIPアドレス
    * @ova … 使用する仮想アプライアンスのファイル名
@@ -100,6 +102,11 @@ $ ruby ./test.rb
       * 「コントロール パネル\ネットワークとインターネット\ネットワーク接続」で表示されるアダプタ名をそのままコピペする
    * @rest_memory … 最大利用可能メモリ数(MB)(ホストマシンのスペックを超えないように)
 
+3. PowerShell などで以下のコマンドを実行
+```
+> ruby host.rb
+```
+ 
 ### 使用例
 
 1. ユーザの PC から Web ブラウザで Controller にアクセス
