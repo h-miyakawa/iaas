@@ -31,7 +31,7 @@ IaaS上に作成された全てのVMをセキュリティ脅威から守りま�
 ユーザが VM を作成し、起動するまでの設定・操作方法を記します。
 
 ### Controller の設定
-1. ??から VM イメージをダウンロード。Virtualbox で起動。
+1. [ここ](http://www.anarg.jp/enshuu2/miniiaas_controller_20160203.ova)から VM イメージをダウンロード。Virtualbox で起動。
 1. ID:ensyuu2 / Password:ensyuu2 でログイン。
 1. Controller に IP アドレスを設定
   * Web サーバ/DHCP サーバ 用に NIC を一つ用意
@@ -46,7 +46,7 @@ $ ruby ./test.rb
 ```
 
 ### PM (Physical Machine) の設定
-1. ホームディレクトリ(C:\Users\#{ユーザ名})に host.rb, vm_memories.json, 仮想アプライアンス(centos.ova)を置く
+1. ホームディレクトリ(C:\Users\#{ユーザ名})に host.rb, vm_memories.json, 仮想アプライアンス([centos.ova](http://www.anarg.jp/enshuu2/centos.ova))を置く
 
 2. host.rb ファイルの initialize メソッド内の設定を環境に合わせた文字列・値に変更する
    * @home … ホームディレクトリのパス
