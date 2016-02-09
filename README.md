@@ -81,6 +81,10 @@ IaaS上に作成された全てのVMをセキュリティ脅威から守りま�
 1. Controller に IP アドレスを設定
   * Web サーバ/DHCP サーバ 用に NIC を一つ用意
   * そのインターフェース（eth0） に静的 IP アドレスを設定
+1. /var/www/CodeIgniter に移動し、以下のコマンドを実行（Web コンテンツに設定した IP アドレスを反映）
+```
+$ sudo find . -type f | xargs sed -i 's/localhost/（設定したControllerのIPアドレス）/g' 
+```
 1. 以下のコマンドを実行して DHCP サーバを起動
 ```
 $ sudo service isc-dhcp-server start
